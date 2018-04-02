@@ -50,23 +50,23 @@ class GA_Start(Operator):
 
         #Load GA property
         ######################################
-        
+
         myscene = context.scene.ga_property
-        
+
         wm = bpy.context.window_manager #display progression
         tot = 1000
         wm.progress_begin(0, tot)
         for i in range(tot):
             wm.progress_update(i)        
         then = time.time() #Calculate time
-        
-        print("\n- GAME ASSET GENERATOR beta EXECUTED -\n")
+
+        print("- GAME ASSET GENERATOR beta EXECUTED -\n")
 
         #Init value
         ######################################
-        
+
         selected_to_active = myscene.D_selected_to_active
-        
+
         LOD0 = myscene.D_LOD0
         LOD1 = myscene.D_LOD1
         LOD2 = myscene.D_LOD2
@@ -74,88 +74,58 @@ class GA_Start(Operator):
         name = myscene.D_name
 
         size = [1024, 1024]
+        SIZE_DICT = {'256':256, '512':512, '1K':1024, '2K':2048, '4K':4096}
+        if myscene.D_textureX in SIZE_DICT:
+           size[0] = SIZE_DICT[myscene.D_textureX]
+        if myscene.D_textureY in SIZE_DICT:
+           size[1] = SIZE_DICT[myscene.D_textureY]
 
-        if myscene.D_textureX == '256':
-           size[0] = 256
-
-        if myscene.D_textureX == '512':
-           size[0] = 512
-
-        if myscene.D_textureX == '1K':
-           size[0] = 1024
-
-        if myscene.D_textureX == '2K':
-           size[0] = 2048
-
-        if myscene.D_textureX == '4K':
-           size[0] = 4096
-		   
-        if myscene.D_textureY == '256':
-           size[1] = 256
-
-        if myscene.D_textureY == '512':
-           size[1] = 512
-
-        if myscene.D_textureY == '1K':
-           size[1] = 1024
-
-        if myscene.D_textureY == '2K':
-           size[1] = 2048
-
-        if myscene.D_textureY == '4K':
-           size[1] = 4096	
-
-		   
-        
         greyscale = 0   #Will apply a diffuse grey 0.735 on the high poly (and remove every other material
 
         #to remove later
         sprite = 0
-        
+
         samples = myscene.D_samples
-        unfold_half = myscene.D_unfoldhalf #Unfold half for symmetrical assets
+        unfold_half = myscene.D_unfoldhalf #Unfold half for symmetrical assets TODO set symetry in decimate is set
         cage_size = myscene.D_cage_size
-        
+
         edge_padding = myscene.D_edge_padding
-        
+
         edge_split = 0
-        
+
         auto_calculation = 0
-        
+
         decimate_HP = 0
-        
+
         custom_UV = 0
 
         uv_margin = myscene.D_uv_margin
         uv_angle = myscene.D_uv_angle
-        
+
         ground_AO = myscene.D_groundAO
         rmv_underground = myscene.D_removeunderground
-        
+
         T_enabled = 0
 
         GPU_baking = 1
-        
+
         lightmap_UVs = 0
 
 
         #Create Shader
         ######################################
 
-        
-        DEF_pointinessShader_add(context,size,name)
-        DEF_ambientocclusionShader_add(context,size,name)
-        DEF_albedoShader_add(context,size,name)
-        DEF_normalShader_add(context,size,name)
-        DEF_maskShader_add(context,size,name)
-        DEF_bentShader_add(context,size,name)
-        DEF_opacityShader_add(context,size,name)
-        DEF_gradientShader_add(context,size,name)
-        DEF_metallicShader_add(context,size,name)
-        DEF_roughnessShader_add(context,size,name)
-        DEF_emissiveShader_add(context,size,name)
-
-
+        DEF_pointinessShader_add(context, size, name)
+        DEF_ambientocclusionShader_add(context, size, name)
+        DEF_albedoShader_add(context, size, name)
+        DEF_normalShader_add(context, size, name)
+        DEF_maskShader_add(context, size, name)
+        DEF_bentShader_add(context, size, name)
+        DEF_opacityShader_add(context, size, name)
+        DEF_gradientShader_add(context, size, name)
+        DEF_metallicShader_add(context, size, name)
+        DEF_roughnessShader_add(context, size, name)
+        DEF_emissiveShader_add(context, size, name)
 
 
         ###########################################################
@@ -165,20 +135,17 @@ class GA_Start(Operator):
         if sprite == 1:
             bpy.context.scene.frame_set(1)
 
-
-
-
         if auto_calculation == 1:
-                        
+
             #Calculate edge padding            
             if size[0] <= size[1]:
                 edge_padding = size[0] / 128
             else:
                 edge_padding = size[1] / 128
-                
+
             #Calculate UV margin
             uv_margin = 1/size[0]*2
-            
+
             print("Auto-calculation mode enabled:")
             print("LOD1", LOD1, "tris max")
             print("LOD2", LOD2, "tris max")
@@ -200,12 +167,12 @@ class GA_Start(Operator):
         bpy.ops.object.move_to_layer(layers=(False, True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
         bpy.context.scene.layers[1] = True
         bpy.context.scene.layers[0] = False
-        
+
         if selected_to_active == 1:
             print("> Selected to Active mode enabled\n")
-            
+
             if len(bpy.context.selected_objects) > 1: 
-               
+
                target_object = bpy.context.active_object.name
                bpy.context.active_object.select = False
 
@@ -216,25 +183,24 @@ class GA_Start(Operator):
                bpy.data.objects[target_object].select = True
                bpy.context.scene.objects.active = bpy.data.objects[target_object ]
 
-               
+
                if bpy.context.selected_objects[0].name  == target_object:              
-                  bpy.context.selected_objects[0].name = "old1" 
-                  bpy.context.selected_objects[1].name = "old2"  
-             
+                  #bpy.context.selected_objects[0].name = "old1"  # TODO old1 and old2 seem to be overwritten???
+                  #bpy.context.selected_objects[1].name = "old2"  
+
                   bpy.context.selected_objects[1].name = "tmpHP"
                   bpy.context.selected_objects[0].name = "tmpLP"   
-                  
+
                else: 
 
-                  bpy.context.selected_objects[0].name = "old1"
-                  bpy.context.selected_objects[0].name = "old2"
-                  
+                  #bpy.context.selected_objects[0].name = "old1"
+                  #bpy.context.selected_objects[0].name = "old2"
+
                   bpy.context.selected_objects[1].name = "tmpLP"
                   bpy.context.selected_objects[0].name = "tmpHP"
-                  
+
                obj = bpy.context.active_object
                LOD0 = len(obj.data.polygons)
-
 
 
         #If we want to generate the low poly
@@ -248,14 +214,14 @@ class GA_Start(Operator):
 
             bpy.ops.object.shade_smooth()
             bpy.context.object.data.use_auto_smooth = False
-            
+
             bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
 
             if decimate_HP == 1:
                 #Remove unnecessary edges of HP
                 #####################
                 bpy.ops.object.mode_set(mode = 'EDIT')
-                        
+
                 bpy.ops.mesh.select_all(action = 'SELECT')
 
                 bpy.ops.mesh.dissolve_limited(angle_limit=0.00174533, use_dissolve_boundaries=False)
@@ -269,7 +235,7 @@ class GA_Start(Operator):
             #creating the low poly
             ######################
             print("\n----- GENERATING THE LOW POLY (LOD0) -----\n")
-            
+
             bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(0, 0, 0), "constraint_axis":(False, False, False), "constraint_orientation":'GLOBAL', "mirror":False, "proportional":'DISABLED', "proportional_edit_falloff":'SMOOTH', "proportional_size":1, "snap":False, "snap_target":'CLOSEST', "snap_point":(0, 0, 0), "snap_align":False, "snap_normal":(0, 0, 0), "gpencil_strokes":False, "texture_space":False, "remove_on_cancel":False, "release_confirm":False})
 
             #remove every material slot of the low poly
@@ -278,12 +244,12 @@ class GA_Start(Operator):
                 ob.active_material_index = 0
                 for i in range(len(ob.material_slots)):
                     bpy.ops.object.material_slot_remove({'object': ob})
-                    
+
             #Remove parts of the mesh bellow the grid if enabled
             if rmv_underground == 1:
                 print("\n> Removing parts of the low poly bellow the grid")
                 bpy.ops.object.mode_set(mode = 'EDIT') 
-                        
+
                 bpy.ops.mesh.select_all(action = 'SELECT')
 
                 bpy.ops.mesh.bisect(plane_co=(0.00102639, 0.0334111, 0), plane_no=(0, 0, 0.999663), use_fill=False, clear_inner=True, xstart=295, xend=444, ystart=464, yend=461)
@@ -291,7 +257,7 @@ class GA_Start(Operator):
                 bpy.ops.mesh.edge_face_add()
 
                 bpy.ops.object.mode_set(mode = 'OBJECT')
-            
+
             #Restauring sharp edges
             #####################
             bpy.ops.object.mode_set(mode = 'EDIT')
@@ -300,18 +266,18 @@ class GA_Start(Operator):
             bpy.ops.mesh.region_to_loop()
             bpy.ops.mesh.mark_sharp()
             bpy.ops.object.mode_set(mode = 'OBJECT')
-                
+
             #Cleaning the doubles
             #####################
             bpy.ops.object.mode_set(mode = 'EDIT')
             bpy.ops.mesh.select_all(action = 'SELECT')
             bpy.ops.mesh.remove_doubles()
             bpy.ops.object.mode_set(mode = 'OBJECT')
-            
+
             #Remove unnecessary edges
             #####################
             bpy.ops.object.mode_set(mode = 'EDIT')
-                        
+
             bpy.ops.mesh.select_all(action = 'SELECT')
 
             bpy.ops.mesh.dissolve_limited(angle_limit=0.00174533, use_dissolve_boundaries=False)
@@ -321,23 +287,12 @@ class GA_Start(Operator):
 
             #Decimation 1
             #############
-            bpy.ops.object.modifier_add(type='TRIANGULATE')
-            bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Triangulate")
-
-            obj = bpy.context.active_object
-            HP_polycount = len(obj.data.polygons)
-
-            decimation = (LOD0 / HP_polycount)
-
-            bpy.ops.object.modifier_add(type='DECIMATE')
-            bpy.context.object.modifiers["Decimate"].ratio = decimation
-            bpy.context.object.modifiers["Decimate"].use_collapse_triangulate = True
-            bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Decimate")
+            self.decimate(LOD0)
 
             #Create envelop by doing an Union boolean between every meshes
             ##############################################################
             if myscene.D_create_envelop == 1:
-        
+
                 bpy.ops.object.mode_set(mode = 'EDIT') 
                 bpy.ops.mesh.select_all(action = 'DESELECT')
                 bpy.ops.mesh.select_mode(type="EDGE")
@@ -358,10 +313,10 @@ class GA_Start(Operator):
 
                 for obj in bpy.context.selected_objects:
                     bpy.context.scene.objects.active = obj
-                    
+
                     i = i + 1
                     bpy.context.object.name = "tmpLP" + str(i)
-                    
+
                 print("Info: Fusionning", i, "meshes")
 
 
@@ -385,18 +340,18 @@ class GA_Start(Operator):
 
 
             bpy.context.object.name = "tmpLP"
-    
+
             if unfold_half == 1:
                 bpy.ops.object.mode_set(mode = 'EDIT')
                 bpy.ops.mesh.select_all(action = 'SELECT')
-        
+
                 bpy.ops.mesh.bisect(plane_co=(0, 0, 0), plane_no=(1, 0, 0), clear_inner=True, clear_outer=False, xstart=849, xend=849, ystart=637, yend=473)
                 bpy.ops.object.mode_set(mode = 'OBJECT')
-                
+
             #Remove underground a second time, but this time remove the botton face (was needed for the create envelop)
             if rmv_underground == 1:
                 bpy.ops.object.mode_set(mode = 'EDIT') 
-                        
+
                 bpy.ops.mesh.select_all(action = 'SELECT')
 
                 bpy.ops.mesh.bisect(plane_co=(0, 0, 0), plane_no=(0, 0, 1), use_fill=False, clear_inner=True, clear_outer=False, threshold=0.01, xstart=373, xend=525, ystart=363, yend=369)
@@ -407,28 +362,23 @@ class GA_Start(Operator):
 
             #Decimation 2
             #############
-            bpy.ops.object.modifier_add(type='TRIANGULATE')
-            bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Triangulate")
+            self.decimate(LOD0, unfold_half)
 
-            obj = bpy.context.active_object
-            HP_polycount = len(obj.data.polygons)
-
-            if unfold_half == 0:
-                decimation = (LOD0 / HP_polycount)
-            if unfold_half == 1:
-                decimation = (LOD0 / HP_polycount) / 2
-
-            bpy.ops.object.modifier_add(type='DECIMATE')
-            bpy.context.object.modifiers["Decimate"].ratio = decimation
-            bpy.context.object.modifiers["Decimate"].use_collapse_triangulate = True
-            bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Decimate")
+            #TODO check if this improves things
+            ###################################
+            #Shrinkwrap
+            ###########
+            bpy.ops.object.modifier_add(type='SHRINKWRAP')
+            bpy.context.object.modifiers['Shrinkwrap'].target = bpy.data.objects['tmpHP']
+            bpy.context.object.modifiers['Shrinkwrap'].offset = 0.0
+            bpy.context.object.modifiers['Shrinkwrap'].use_keep_above_surface = True
+            bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Shrinkwrap")
 
             #Unfold UVs 
             ###########
-            print("\n> Performing Smart UVs Project at", uv_angle, "degrees with", uv_margin, "of margin")
-
+            print("\n> Performing Smart UVs Project at {:3.1f} degrees with {:6.4f} of margin".format(uv_angle, uv_margin))
             bpy.ops.uv.smart_project(angle_limit=uv_angle, island_margin=uv_margin)
-    
+
             if unfold_half == 1:
                 print("-> Half of the low poly has been unfolded\n") 
                 bpy.ops.object.modifier_add(type='MIRROR')
@@ -439,16 +389,16 @@ class GA_Start(Operator):
             #bpy.ops.mesh.remove_doubles()
 
             bpy.ops.object.mode_set(mode = 'OBJECT')
-            
-            
+
+
             HP_polycount = len(obj.data.polygons)
-            print("\n> LOD0 generated with", HP_polycount, "tris")
+            print("\n> LOD0 generated with {} tris".format(HP_polycount))
 
             #Lightmap UVs
             if lightmap_UVs == 1:
                 bpy.ops.mesh.uv_texture_add()
                 bpy.ops.object.mode_set(mode = 'EDIT')
-                                    
+
                 bpy.ops.mesh.select_all(action = 'SELECT')
                 bpy.ops.uv.lightmap_pack()
 
@@ -459,87 +409,85 @@ class GA_Start(Operator):
 
         #BAKING
         ##############################################################################################################################################################################################################
-                
-        print("\n----- BAKING TEXTURES IN", size[0], "*", size[1], "-----")   
-        
+
+        print("\n----- BAKING TEXTURES IN {} * {} -----".format(size[0], size[1]))   
+
         if ground_AO == 1:
             print("\n> Adding ground plane") 
             bpy.ops.mesh.primitive_plane_add(radius=1, view_align=False, enter_editmode=False, location=(0, 0, 0), layers=(False, True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
             bpy.ops.transform.resize(value=(100, 100, 100), constraint_axis=(False, False, False), constraint_orientation='GLOBAL', mirror=False, proportional='DISABLED', proportional_edit_falloff='SMOOTH', proportional_size=1)
             bpy.context.object.name = "ground_AO"
-        
+
         bpy.ops.object.select_all(action = 'DESELECT')
         bpy.ops.object.select_pattern(pattern="tmpLP")
         bpy.context.scene.objects.active = bpy.data.objects["tmpLP"]
-        
+
         bpy.ops.object.modifier_add(type='ARMATURE')
-        
+
         if bpy.data.objects.get("Armature") is not None:
             bpy.context.object.modifiers["Armature"].object = bpy.data.objects["Armature"]
-        
+
         bpy.ops.object.modifier_add(type='EDGE_SPLIT')
         bpy.context.object.modifiers["EdgeSplit"].use_edge_angle = False
 
 
         #Check if the low poly has UVs
         if not len( bpy.context.object.data.uv_layers ):
-            print("\n> Unwrapping: the low poly has no UV map, performing a Smart UV Project\n")
-            bpy.ops.uv.smart_project() # Perform smart UV projection
-        
+            print("\n> Unwrapping: the low poly has no UV map, performing Smart UVs Project at {:3.1f} degrees with {:6.4f} of margin".format(uv_angle, uv_margin))
+            bpy.ops.uv.smart_project(angle_limit=uv_angle, island_margin=uv_margin)
+
         bpy.ops.object.select_pattern(pattern="tmpHP")
         bpy.context.scene.objects.active = bpy.data.objects["tmpLP"]
-        
+
         bpy.context.scene.render.engine = 'CYCLES'
         bpy.context.scene.cycles.samples = 1
 
 
         #Mask map
-        
+
         if myscene.T_mask == 1:
             print("\n> Baking: mask map at 1 sample")
 
             bpy.data.objects['tmpLP'].active_material = bpy.data.materials[name+"_"+'MASK']
             bpy.ops.object.bake(type="DIFFUSE", use_selected_to_active = True, use_cage = False, cage_extrusion = cage_size, margin = edge_padding, use_clear = True, pass_filter=set({'COLOR'}))
-    
-        
+
         #Albedo map
-        
+
         if myscene.T_albedo == 1:
             print("\n> Baking: albedo map")
 
             bpy.data.objects['tmpLP'].active_material = bpy.data.materials[name+"_"+'ALBEDO']
             bpy.ops.object.bake(type="DIFFUSE", use_selected_to_active = True, use_cage = False, cage_extrusion = cage_size, margin = edge_padding, use_clear = True, pass_filter=set({'COLOR'}))
-    
-        
-    
-    
+
+ 
         #Normal map
-        
+
         if myscene.T_normal == 1:
-            
+
             bpy.context.scene.cycles.samples = 16
-            
+
             print("\n> Baking: normal map at 16 samples")
 
             bpy.data.objects['tmpLP'].active_material = bpy.data.materials[name+"_"+'NORMAL']
             bpy.ops.object.bake(type="NORMAL", normal_space ='TANGENT', use_selected_to_active = True, use_cage = False, cage_extrusion = cage_size, margin = edge_padding, use_clear = True)
-            
+
             bpy.context.scene.cycles.samples = 1
-            
+
         #Curvature map
-        
+
         if myscene.T_curvature == 1:
-        
-            print("-> Compositing: curvature map from normal map")
+
+            print("\n> Compositing: curvature map from normal map")
 
             DEF_NormalToCurvature(context,size,name)
             DEF_image_save_Curvature( name )
-            
+
         #Bent map
+
         if myscene.T_bent == 1:
-            
+
             bpy.context.scene.cycles.samples = 16
-            
+
             print("\n> Baking: bent map at 16 samples")
 
             bpy.data.objects['tmpLP'].active_material = bpy.data.materials[name+"_"+'BENT']
@@ -554,35 +502,32 @@ class GA_Start(Operator):
             bpy.context.scene.cycles.samples = samples
             bpy.context.scene.world.light_settings.distance = 10
 
-            print("\n> Baking: ambient occlusion map at", samples, "samples")
+            print("\n> Baking: ambient occlusion map at {} samples".format(samples))
 
             bpy.data.objects['tmpLP'].active_material = bpy.data.materials[name+"_"+'AMBIENT OCCLUSION']
             bpy.ops.object.bake(type="AO", use_selected_to_active = True, use_cage = False, cage_extrusion = cage_size, margin = edge_padding, use_clear = True)
-            
+
             bpy.context.scene.cycles.samples = 1
-            
+
         #DENOISING
-        
+
         if myscene.T_ao_denoising == 1:
-        
-            print("-> Compositing: denoising the ambient occlusion map\n")
+
+            print("\n> Compositing: denoising the ambient occlusion map\n")
 
             DEF_denoising(context,size,name)
             DEF_image_save_Denoising ( name,1 )
         else:
             DEF_image_save_Denoising ( name,0 )
-            
-        
-        
+
         #Emissive map
         if myscene.T_emissive == 1:
-            
+
             print("\n> Baking: emissive map at 1 sample")
 
             bpy.data.objects['tmpLP'].active_material = bpy.data.materials[name+"_"+'EMISSIVE']
             bpy.ops.object.bake(type="EMIT", use_selected_to_active = True, use_cage = False, cage_extrusion = cage_size, margin = edge_padding, use_clear = True)
-        
-            
+
         #remove every materials of the high poly
         print("> Removing every materials on the high poly")
         bpy.ops.object.select_all(action = 'DESELECT')
@@ -594,10 +539,9 @@ class GA_Start(Operator):
             ob.active_material_index = 0
             for i in range(len(ob.material_slots)):
                 bpy.ops.object.material_slot_remove({'object': ob})
-                
+
         bpy.ops.object.select_pattern(pattern="tmpLP")
         bpy.context.scene.objects.active = bpy.data.objects["tmpLP"]
-
 
         #Pointiness map
 
@@ -608,15 +552,13 @@ class GA_Start(Operator):
             bpy.data.objects['tmpHP'].active_material = bpy.data.materials[name+"_"+'POINTINESS']        
             bpy.ops.object.bake(type="EMIT", use_selected_to_active = True, use_cage = False, cage_extrusion = cage_size, margin = edge_padding, use_clear = True)
 
-
-
         #Gradient map
         if myscene.T_gradient == 1:
             print("\n> Baking: gradient map at 1 sample")
 
             bpy.data.objects['tmpLP'].active_material = bpy.data.materials[name+"_"+'GRADIENT']
             bpy.data.objects['tmpHP'].active_material = bpy.data.materials[name+"_"+'GRADIENT']
-                    
+
             bpy.ops.object.bake(type="EMIT", use_selected_to_active = True, use_cage = False, cage_extrusion = cage_size, margin = edge_padding, use_clear = True, pass_filter=set({'COLOR'}))
 
         #Opacity map
@@ -625,7 +567,7 @@ class GA_Start(Operator):
 
             bpy.data.objects['tmpLP'].active_material = bpy.data.materials[name+"_"+'OPACITY']
             bpy.data.objects['tmpHP'].active_material = bpy.data.materials[name+"_"+'OPACITY']
-            
+
             bpy.ops.object.bake(type="EMIT", use_selected_to_active = True, use_cage = False, cage_extrusion = cage_size, margin = edge_padding, use_clear = True, pass_filter=set({'COLOR'}))
 
         #Finalizing
@@ -644,16 +586,13 @@ class GA_Start(Operator):
 
         bpy.ops.object.lamp_add(type='POINT', radius=1, view_align=False, location=(0.5, -1.5, 2), layers=(False, True, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False, False))
 
-
-
-
         #delete the high poly
         bpy.ops.object.select_all(action = 'DESELECT')
         bpy.ops.object.select_pattern(pattern="tmpHP")
         bpy.context.scene.objects.active = bpy.data.objects["tmpHP"]
 
         bpy.ops.object.delete(use_global=False)
-        
+
         #delete the ground        
         if ground_AO == 1:
             bpy.ops.object.select_all(action = 'DESELECT')
@@ -661,7 +600,6 @@ class GA_Start(Operator):
             bpy.context.scene.objects.active = bpy.data.objects["ground_AO"]
 
             bpy.ops.object.delete(use_global=False)
-            
 
         bpy.ops.object.select_all(action = 'DESELECT')
         bpy.ops.object.select_pattern(pattern="tmpLP")
@@ -674,109 +612,39 @@ class GA_Start(Operator):
         #################################
         DEF_pbrShader_add(context,size,name)
 
-
-
         bpy.data.objects['tmpLP'].active_material = bpy.data.materials[name+"_"+'PBR']
-
 
         bpy.context.object.name = name + "_LOD0"
         bpy.context.object.data.name = name + "_LOD0"
-        
+
 
         #Generating the LODs
         ####################
-        
+
         bpy.ops.object.mode_set(mode = 'EDIT')                        
         bpy.ops.mesh.select_all(action = 'SELECT')        
         bpy.ops.object.mode_set(mode = 'OBJECT')
-        
-        if LOD1 > 0:
-            bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(0, 3, 0), "constraint_axis":(False, True, False), "constraint_orientation":'GLOBAL', "mirror":False, "proportional":'DISABLED', "proportional_edit_falloff":'SMOOTH', "proportional_size":1, "snap":False, "snap_target":'CLOSEST', "snap_point":(0, 0, 0), "snap_align":False, "snap_normal":(0, 0, 0), "gpencil_strokes":False, "texture_space":False, "remove_on_cancel":False, "release_confirm":False})
-            bpy.context.object.name = name + "_LOD1"
-            bpy.context.object.data.name = name + "_LOD1"
-        
-            #decimation of the LOD1
-            #######################
-            bpy.ops.object.modifier_add(type='TRIANGULATE')
-            bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Triangulate")
 
-            obj = bpy.context.active_object
-            HP_polycount = len(obj.data.polygons)
+        for lod, lod_ending in ((LOD1, "_LOD1"), (LOD2, "_LOD2"), (LOD3, "_LOD3")):
+            if lod > 0:
+                bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(0, 3, 0), "constraint_axis":(False, True, False), "constraint_orientation":'GLOBAL', "mirror":False, "proportional":'DISABLED', "proportional_edit_falloff":'SMOOTH', "proportional_size":1, "snap":False, "snap_target":'CLOSEST', "snap_point":(0, 0, 0), "snap_align":False, "snap_normal":(0, 0, 0), "gpencil_strokes":False, "texture_space":False, "remove_on_cancel":False, "release_confirm":False})
+                bpy.context.object.name = name + lod_ending
+                bpy.context.object.data.name = name + lod_ending
 
-            decimation = (LOD1 / HP_polycount)
+                #decimation of the LODx
+                #######################
+                self.decimate(lod)
+                #TODO: Export LODx in OBJ
 
+                HP_polycount = len(obj.data.polygons)
+                print("\n>{} generated with {} tris\n".format(lod_ending, HP_polycount))
 
-            bpy.ops.object.modifier_add(type='DECIMATE')
-            bpy.context.object.modifiers["Decimate"].ratio = decimation
-            bpy.context.object.modifiers["Decimate"].use_collapse_triangulate = True
-            bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Decimate")
-        
-            #TODO: Export LOD1 in OBJ
+        bpy.ops.object.select_all(action = 'DESELECT')
 
-            HP_polycount = len(obj.data.polygons)
-            print("\n> LOD1 generated with", HP_polycount, "tris\n")
+        bpy.ops.object.select_pattern(pattern= name + "_LOD0")
+        bpy.context.scene.objects.active = bpy.data.objects[name + "_LOD0"]
 
-        if LOD2 > 0:
-            bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(0, 3, 0), "constraint_axis":(False, True, False), "constraint_orientation":'GLOBAL', "mirror":False, "proportional":'DISABLED', "proportional_edit_falloff":'SMOOTH', "proportional_size":1, "snap":False, "snap_target":'CLOSEST', "snap_point":(0, 0, 0), "snap_align":False, "snap_normal":(0, 0, 0), "gpencil_strokes":False, "texture_space":False, "remove_on_cancel":False, "release_confirm":False})
-            bpy.context.object.name = name + "_LOD2"
-            bpy.context.object.data.name = name + "_LOD2"
-        
-            #decimation of the LOD2
-            #######################
-            bpy.ops.object.modifier_add(type='TRIANGULATE')
-            bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Triangulate")
-
-            obj = bpy.context.active_object
-            HP_polycount = len(obj.data.polygons)
-
-            HP_polycount = len(obj.data.polygons)
-            decimation = (LOD2 / HP_polycount)
-
-
-            bpy.ops.object.modifier_add(type='DECIMATE')
-            bpy.context.object.modifiers["Decimate"].ratio = decimation
-            bpy.context.object.modifiers["Decimate"].use_collapse_triangulate = True
-            bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Decimate")
-        
-
-            HP_polycount = len(obj.data.polygons)
-            print("\n> LOD2 generated with", HP_polycount, "tris\n")
-            
-        if LOD3 > 0:
-            bpy.ops.object.duplicate_move(OBJECT_OT_duplicate={"linked":False, "mode":'TRANSLATION'}, TRANSFORM_OT_translate={"value":(0, 3, 0), "constraint_axis":(False, True, False), "constraint_orientation":'GLOBAL', "mirror":False, "proportional":'DISABLED', "proportional_edit_falloff":'SMOOTH', "proportional_size":1, "snap":False, "snap_target":'CLOSEST', "snap_point":(0, 0, 0), "snap_align":False, "snap_normal":(0, 0, 0), "gpencil_strokes":False, "texture_space":False, "remove_on_cancel":False, "release_confirm":False})
-            bpy.context.object.name = name + "_LOD3"
-            bpy.context.object.data.name = name + "_LOD3"
-        
-            #decimation of the LOD3
-            #######################
-            bpy.ops.object.modifier_add(type='TRIANGULATE')
-            bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Triangulate")
-
-            obj = bpy.context.active_object
-            HP_polycount = len(obj.data.polygons)
-
-            HP_polycount = len(obj.data.polygons)
-            decimation = (LOD3 / HP_polycount)
-
-
-            bpy.ops.object.modifier_add(type='DECIMATE')
-            bpy.context.object.modifiers["Decimate"].ratio = decimation
-            bpy.context.object.modifiers["Decimate"].use_collapse_triangulate = True
-            bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Decimate")
-        
-
-            HP_polycount = len(obj.data.polygons)
-            print("\n> LOD3 generated with", HP_polycount, "tris\n")
-        
-            bpy.ops.object.select_all(action = 'DESELECT')
-            
-            bpy.ops.object.select_pattern(pattern= name + "_LOD0")
-            bpy.context.scene.objects.active = bpy.data.objects[name + "_LOD0"]
-
-
-        
-        print("> Saving every textures")        
-
+        print("\n> Saving every texture")
 
         DEF_image_save( name )
 
@@ -786,20 +654,34 @@ class GA_Start(Operator):
                     if space.type == 'VIEW_3D':
                         space.viewport_shade = 'MATERIAL'
                         area.spaces[0].fx_settings.use_ssao = False
-        
+
         bpy.context.scene.render.engine = 'BLENDER_RENDER'
-        
+
         wm.progress_end()
         now = time.time() #Time after it finished
 
         print("\n----- GAME ASSET READY -----") 
-        print("\nAsset generated in", now-then, "seconds\n\n")
-
-
+        print("\nAsset generated in {:3.1f} seconds\n\n".format(now - then))
 
         return {'FINISHED'}
 
+    def decimate(self, lod, unfold_half=0):
+        bpy.ops.object.modifier_add(type='TRIANGULATE')
+        bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Triangulate")
 
+        bpy.ops.object.modifier_add(type='DECIMATE')
+        obj = bpy.context.active_object
+        HP_polycount = len(obj.data.polygons)
 
+        decimation = (lod / HP_polycount)
+        if unfold_half == 1:
+            decimation *= 0.5
 
+        bpy.context.object.modifiers["Decimate"].ratio = decimation
+        bpy.context.object.modifiers["Decimate"].use_collapse_triangulate = True
+        if unfold_half == 1:
+            bpy.context.object.modifiers["Decimate"].use_symmetry = True
+            bpy.context.object.modifiers["Decimate"].symmetry_axis = "X"
+
+        bpy.ops.object.modifier_apply(apply_as='DATA', modifier="Decimate")
 

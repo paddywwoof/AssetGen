@@ -1,4 +1,4 @@
-import bpy,os, shutil
+import bpy, os, shutil
 from bpy.props import IntProperty, BoolProperty, FloatProperty, EnumProperty, PointerProperty
 from bpy.types import Menu, Panel, AddonPreferences, PropertyGroup, UIList
 from rna_prop_ui import PropertyPanel
@@ -668,7 +668,7 @@ class ExpObj(bpy.types.Operator):
         name = active_object.name
         objname = name + ".fbx" 
 
-        target_file = bpy.path.abspath(context.scene.ga_property.DT_pathobj) + '\\' + objname 
+        target_file = os.path.join(bpy.path.abspath(context.scene.ga_property.DT_pathobj), objname)
         target_directory0 = os.path.dirname(target_file )
         target_directory1 = os.path.dirname( 
                             context.scene.ga_property.DT_exportpathtexture )
@@ -699,11 +699,11 @@ class ExpObj(bpy.types.Operator):
         srcfile = bpy.path.abspath(os.path.dirname(bpy.data.filepath ) )
 
 
-        shutil.copy(srcfile + "\\"+ name[:-4] + "albedo.tga" , mypresets )
-        shutil.copy(srcfile + "\\"+ name[:-4] + "normal.tga" , mypresets )
-        shutil.copy(srcfile + "\\"+ name[:-4] + "ambient_occlusion.tga" , mypresets )
-        shutil.copy(srcfile + "\\"+ name[:-4] + "metallic.tga" , mypresets )
-        shutil.copy(srcfile + "\\"+ name[:-4] + "roughness.tga" , mypresets )
+        shutil.copy(os.path.join(srcfile, name[:-4] + "albedo.tga"), mypresets )
+        shutil.copy(os.path.join(srcfile, name[:-4] + "normal.tga"), mypresets )
+        shutil.copy(os.path.join(srcfile, name[:-4] + "ambient_occlusion.tga"), mypresets )
+        shutil.copy(os.path.join(srcfile, name[:-4] + "metallic.tga"), mypresets )
+        shutil.copy(os.path.join(srcfile, name[:-4] + "roughness.tga"), mypresets )
       
         return {'FINISHED'}
 
